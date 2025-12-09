@@ -3,261 +3,348 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gemini Weather AI</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Gemini Weather - Master Fix</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    
     <style>
-        /* --- CSS STYLING (Matches your design) --- */
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        /* --- BLUE RAIN DESIGN (Original) --- */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         
         body {
-            background: linear-gradient(135deg, #4b6cb7, #182848); /* Blue Gradient Background */
+            font-family: 'Inter', sans-serif;
             height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            color: #333;
+            overflow: hidden;
+            background: #74b9ff; 
+            transition: background 1s ease;
         }
 
-        .main-container {
+        body.sunny { background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); }
+        body.rainy { background: linear-gradient(135deg, #373B44 0%, #4286f4 100%); }
+        body.cloudy { background: linear-gradient(135deg, #bdc3c7 0%, #2c3e50 100%); }
+
+        .app-container {
             display: flex;
             gap: 20px;
             width: 900px;
-            height: 600px;
-            padding: 20px;
+            height: 85vh;
+            max-width: 95%;
+            z-index: 10;
         }
 
-        /* --- LEFT CARD: WEATHER --- */
-        .weather-card {
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 25px;
+        .card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 25px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.15);
             flex: 1;
-            padding: 30px;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            position: relative;
+            border: 1px solid rgba(255,255,255,0.6);
         }
 
-        .search-box {
-            width: 100%;
-            display: flex;
-            gap: 10px;
-            margin-bottom: 30px;
+        .search-row { display: flex; gap: 10px; margin-bottom: 20px; }
+        
+        input { 
+            flex: 1; padding: 15px; border: 2px solid #e0e0e0; 
+            border-radius: 15px; outline: none; font-size: 1rem;
         }
-
-        .search-box input {
-            width: 100%;
-            padding: 12px 15px;
-            border-radius: 12px;
-            border: none;
-            background: #f0f2f5;
-            outline: none;
-            font-size: 16px;
+        input:focus { border-color: #6C5CE7; }
+        
+        button { 
+            padding: 0 25px; border: none; background: #6C5CE7; color: white; 
+            border-radius: 15px; cursor: pointer; font-size: 1.2rem; transition: 0.2s;
         }
+        button:hover { transform: scale(1.05); }
 
-        .search-box button {
-            background: #6c5ce7;
-            color: white;
-            border: none;
-            padding: 12px 15px;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: 0.3s;
+        .weather-content { text-align: center; margin: auto 0; }
+        .temp { font-size: 5rem; font-weight: 800; color: #2d3436; margin: 10px 0; }
+        .city { font-size: 2rem; color: #636e72; font-weight: 600; }
+        .icon-display { font-size: 5rem; display: block; }
+        
+        .stats { 
+            display: flex; justify-content: space-around; 
+            margin-top: 40px; padding-top: 20px; border-top: 2px solid rgba(0,0,0,0.05);
         }
-        .search-box button:hover { background: #5a4ad1; }
+        .stat-box strong { display: block; font-size: 1.2rem; color: #2d3436; margin-top: 5px; }
 
-        .weather-icon { font-size: 100px; margin: 20px 0; }
-        .temp { font-size: 80px; font-weight: bold; color: #2d3436; }
-        .city { font-size: 24px; color: #636e72; font-weight: 500; }
-        .condition { font-size: 18px; color: #636e72; margin-bottom: 40px; }
-
-        .details {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-            padding: 0 20px;
+        .chat-header { 
+            display: flex; justify-content: space-between; align-items: center; 
+            padding-bottom: 15px; border-bottom: 2px solid #f1f2f6;
         }
-        .detail-item { text-align: center; }
-        .detail-item i { color: #6c5ce7; font-size: 20px; margin-bottom: 5px; }
-
-        /* --- RIGHT CARD: GEMINI CHAT --- */
-        .chat-card {
-            background: white;
-            border-radius: 25px;
-            flex: 1.2;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        }
-
-        .chat-header {
-            padding: 20px;
-            border-bottom: 1px solid #eee;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .chat-header i { color: #ffa502; }
-
-        .chat-messages {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            background: #f9f9f9;
-        }
-
-        .message {
-            max-width: 80%;
-            padding: 12px 16px;
-            border-radius: 15px;
-            font-size: 14px;
-            line-height: 1.5;
+        .voice-toggle { cursor: pointer; color: #6C5CE7; font-weight: 600; font-size: 0.9rem; }
+        
+        .chat-area { 
+            flex: 1; overflow-y: auto; padding: 15px; 
+            background: #f8f9fa; border-radius: 15px; margin: 15px 0;
+            display: flex; flex-direction: column; gap: 10px;
         }
         
-        .message.user {
-            align-self: flex-end;
-            background: #6c5ce7;
-            color: white;
-            border-bottom-right-radius: 2px;
-        }
-        
-        .message.ai {
-            align-self: flex-start;
-            background: white;
-            border: 1px solid #e0e0e0;
-            border-top-left-radius: 2px;
-        }
+        .msg { padding: 12px 18px; border-radius: 15px; font-size: 0.95rem; line-height: 1.5; max-width: 85%; }
+        .msg.ai { background: #fff; color: #333; align-self: flex-start; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .msg.user { background: #6C5CE7; color: white; align-self: flex-end; }
+        .msg.error { background: #ff7675; color: white; text-align: center; border: 2px solid #d63031; width: 100%; word-break: break-word; }
 
-        .chat-input-area {
-            padding: 15px;
-            background: white;
-            border-top: 1px solid #eee;
-            display: flex;
-            gap: 10px;
+        .rain-layer {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 1; display: none;
         }
-        
-        .chat-input-area input {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 20px;
-            outline: none;
+        .drop {
+            position: absolute; background: rgba(255,255,255,0.6);
+            width: 2px; height: 15px; top: -20px;
+            animation: fall linear infinite;
         }
+        @keyframes fall { to { transform: translateY(100vh); } }
+
+        @media (max-width: 768px) { .app-container { flex-direction: column; height: auto; padding: 20px 0; } }
     </style>
 </head>
-<body>
+<body id="main-body">
 
-    <div class="main-container">
-        <div class="weather-card">
-            <div class="search-box">
-                <input type="text" id="cityInput" placeholder="Enter city (e.g., London)" value="London">
-                <button onclick="getWeather()"><i class="fas fa-search"></i></button>
+    <div id="rain-box" class="rain-layer"></div>
+
+    <div class="app-container">
+        <div class="card">
+            <div class="search-row">
+                <input type="text" id="cityIn" placeholder="Enter City (e.g. Paris)" value="London">
+                <button id="searchBtn">🔍</button>
             </div>
-            
-            <div class="weather-icon" id="weatherIcon">☁️</div>
-            <div class="temp" id="tempDisplay">--°</div>
-            <div class="city" id="cityDisplay">Select a City</div>
-            <div class="condition" id="conditionDisplay">--</div>
 
-            <div class="details">
-                <div class="detail-item">
-                    <i class="fas fa-tint"></i>
-                    <div id="humidityDisplay">--%</div>
-                    <small>Humidity</small>
-                </div>
-                <div class="detail-item">
-                    <i class="fas fa-wind"></i>
-                    <div id="windDisplay">-- m/s</div>
-                    <small>Wind</small>
+            <div class="weather-content">
+                <span id="w-icon" class="icon-display">⛅</span>
+                <div id="w-temp" class="temp">--°</div>
+                <div id="w-city" class="city">Search City</div>
+                <div id="w-desc" style="text-transform: capitalize; margin-top: 10px;">--</div>
+
+                <div class="stats">
+                    <div class="stat-box">
+                        <span>💧 Humidity</span>
+                        <strong id="w-humidity">--%</strong>
+                    </div>
+                    <div class="stat-box">
+                        <span>💨 Wind</span>
+                        <strong id="w-wind">-- m/s</strong>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="chat-card">
+        <div class="card">
             <div class="chat-header">
-                <i class="fas fa-star"></i> Gemini Assistant
+                <h3>✨ Gemini Assistant</h3>
+                <span class="voice-toggle" id="voiceBtn">🔊 Voice On</span>
             </div>
             
-            <div class="chat-messages" id="chatBox">
-                <div class="message ai">Hello! Search for a city, and I'll tell you about the weather there.</div>
+            <div class="chat-area" id="chat-box">
+                <div class="msg ai">Hello! I can see the weather. Ask me anything!</div>
             </div>
 
-            <div class="chat-input-area">
-                <input type="text" placeholder="Ask about rain, outfit..." disabled> 
-                </div>
+            <div class="search-row" style="margin-bottom: 0;">
+                <input type="text" id="aiIn" placeholder="Ask about rain, outfit...">
+                <button id="askBtn">➤</button>
+            </div>
         </div>
     </div>
 
     <script>
+        // ==========================================
+        // 🚨 PASTE API KEY HERE (LINE 230)
+        const GEMINI_API_KEY = "AIzaSyA5rpr3UZProARVZJSoz5BC3o1b9ZZJNt4";
+        // ==========================================
+
+        const WEATHER_API_KEY = '578f6107f18da6401bdf45590ebabd73';
+        let weatherData = null;
+        let voiceOn = true;
+        let foundModel = null; // We will store the working model here
+
+        // Setup Listeners
+        document.getElementById('searchBtn').addEventListener('click', getWeather);
+        document.getElementById('askBtn').addEventListener('click', askGemini);
+        document.getElementById('voiceBtn').addEventListener('click', toggleVoice);
+        
+        document.getElementById('cityIn').addEventListener('keypress', (e) => { if(e.key === 'Enter') getWeather() });
+        document.getElementById('aiIn').addEventListener('keypress', (e) => { if(e.key === 'Enter') askGemini() });
+
+        // --- 1. THE "HANDSHAKE" FUNCTION ---
+        // This finds exactly which model your key is allowed to use
+        async function findWorkingModel() {
+            try {
+                // Ask Google: "List all models I can use"
+                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${GEMINI_API_KEY}`);
+                const data = await res.json();
+
+                if (data.models) {
+                    // Look for a model that supports 'generateContent'
+                    const validModel = data.models.find(m => 
+                        m.supportedGenerationMethods && 
+                        m.supportedGenerationMethods.includes("generateContent") &&
+                        (m.name.includes("gemini") || m.name.includes("flash"))
+                    );
+
+                    if (validModel) {
+                        foundModel = validModel.name; // Save it (e.g., 'models/gemini-1.0-pro-001')
+                        console.log("Found working model:", foundModel);
+                        return foundModel;
+                    }
+                }
+            } catch (e) {
+                console.error("Could not list models", e);
+            }
+            // Fallback if list fails
+            return "models/gemini-pro"; 
+        }
+
+        // --- 2. WEATHER FUNCTION ---
         async function getWeather() {
-            const city = document.getElementById('cityInput').value;
-            const chatBox = document.getElementById('chatBox');
-            
+            const city = document.getElementById('cityIn').value;
             if(!city) return;
-
-            // 1. Add User Message to Chat
-            addMessage(city, 'user');
-
-            // Show "Typing..." state
-            const loadingMsg = addMessage("Checking the weather satellites...", 'ai');
+            document.getElementById('w-city').innerText = "Loading...";
 
             try {
-                // 2. Call YOUR Secure Backend (Vercel)
-                const response = await fetch(`/api/server?city=${city}`);
-                const data = await response.json();
-
-                // Remove loading message
-                loadingMsg.remove();
-
-                if (data.error) {
-                    addMessage("Error: " + data.error, 'ai');
-                    return;
-                }
-
-                // 3. Update Left Panel (Weather Card)
-                // We need to fetch basic weather data for the UI separately or parse it if backend sends it. 
-                // *For this specific backend code provided earlier, it only returns Gemini text.*
-                // *To make the UI fully work, we will cheat slightly and parse the text or fetch weather client-side for the visual card.*
-                
-                // Let's do a quick client-side fetch ONLY for the visual numbers (Temp/Icon)
-                // The AI text still comes securely from your backend.
-                updateVisuals(city);
-
-                // 4. Update Right Panel (Gemini Response)
-                addMessage(data.result, 'ai');
-
-            } catch (error) {
-                loadingMsg.remove();
-                addMessage("Something went wrong connecting to the server.", 'ai');
+                const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${WEATHER_API_KEY}`);
+                if(!res.ok) throw new Error("City not found");
+                const data = await res.json();
+                weatherData = data;
+                updateUI(data);
+            } catch (err) {
+                alert("City not found!");
+                document.getElementById('w-city').innerText = "Error";
             }
         }
 
-        function addMessage(text, sender) {
-            const chatBox = document.getElementById('chatBox');
-            const msgDiv = document.createElement('div');
-            msgDiv.classList.add('message', sender);
-            msgDiv.innerText = text;
-            chatBox.appendChild(msgDiv);
-            chatBox.scrollTop = chatBox.scrollHeight;
-            return msgDiv;
+        // --- 3. AI FUNCTION ---
+        async function askGemini() {
+            const input = document.getElementById('aiIn');
+            const btn = document.getElementById('askBtn');
+            const text = input.value;
+            
+            if(!text) return;
+
+            addMsg(text, 'user');
+            input.value = '';
+            input.disabled = true;
+            btn.innerText = "Connecting...";
+
+            if (GEMINI_API_KEY.includes("PASTE")) {
+                addMsg("❌ ERROR: Key is missing! Go to Line 230.", "error");
+                input.disabled = false;
+                btn.innerText = "➤";
+                return;
+            }
+
+            try {
+                // STEP 1: If we don't know the model yet, find it
+                if (!foundModel) {
+                    await findWorkingModel();
+                }
+
+                // STEP 2: Build the prompt
+                let context = "You are a weather assistant.";
+                if(weatherData) {
+                    context += ` Weather in ${weatherData.name}: ${weatherData.weather[0].main}, ${Math.round(weatherData.main.temp)}°C.`;
+                }
+                const prompt = `${context} User asks: "${text}". Keep it short.`;
+
+                // STEP 3: Send Request using the FOUND model
+                // NOTE: 'foundModel' already includes 'models/' prefix usually
+                const modelToUse = foundModel || "models/gemini-1.5-flash"; 
+                const url = `https://generativelanguage.googleapis.com/v1beta/${modelToUse}:generateContent?key=${GEMINI_API_KEY}`;
+                
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    // Check specifically for the "Not Found" error
+                    if(data.error && data.error.code === 404) {
+                         throw new Error(`Model ${modelToUse} not found. Your API Key does not support AI.`);
+                    }
+                    throw new Error(data.error?.message || "Unknown Error");
+                }
+
+                const aiText = data.candidates[0].content.parts[0].text;
+                addMsg(aiText, 'ai');
+                if(voiceOn) speak(aiText);
+
+            } catch (err) {
+                console.error(err);
+                addMsg(`❌ ${err.message}`, "error");
+            } finally {
+                input.disabled = false;
+                btn.innerText = "➤";
+                input.focus();
+            }
         }
 
-        // Helper to update the visual numbers on the left card
-        async function updateVisuals(city) {
-            const apiKey = "YOUR_OPENWEATHER_KEY_HERE"; // Optional: Put a public key here if you want live numbers instantly, 
-            // OR ideally, update your backend to return { temp, humidity, geminiText } instead of just text.
-            // For now, I will simulate updating the UI to show you it works.
+        function updateUI(data) {
+            document.getElementById('w-temp').innerText = Math.round(data.main.temp) + "°";
+            document.getElementById('w-city').innerText = data.name;
+            document.getElementById('w-desc').innerText = data.weather[0].description;
+            document.getElementById('w-humidity').innerText = data.main.humidity + "%";
+            document.getElementById('w-wind').innerText = data.wind.speed + " m/s";
+
+            const main = data.weather[0].main.toLowerCase();
+            const body = document.getElementById('main-body');
+            const rainBox = document.getElementById('rain-box');
             
-            document.getElementById('cityDisplay').innerText = city;
-            // Note: Since our backend currently only returns TEXT, we can't extract numbers easily without changing backend code.
-            // This UI will update the Gemini Chat perfectly. 
+            body.className = '';
+            rainBox.style.display = 'none';
+            rainBox.innerHTML = '';
+
+            if(main.includes('rain') || main.includes('drizzle')) {
+                body.classList.add('rainy');
+                rainBox.style.display = 'block';
+                makeRain();
+                document.getElementById('w-icon').innerText = "🌧️";
+            } else if(main.includes('clear')) {
+                body.classList.add('sunny');
+                document.getElementById('w-icon').innerText = "☀️";
+            } else {
+                body.classList.add('cloudy');
+                document.getElementById('w-icon').innerText = "☁️";
+            }
         }
+
+        function makeRain() {
+            const box = document.getElementById('rain-box');
+            for(let i=0; i<50; i++) {
+                const d = document.createElement('div');
+                d.className = 'drop';
+                d.style.left = Math.random() * 100 + 'vw';
+                d.style.animationDuration = (Math.random() * 0.5 + 0.5) + 's';
+                box.appendChild(d);
+            }
+        }
+
+        function addMsg(txt, type) {
+            const box = document.getElementById('chat-box');
+            const div = document.createElement('div');
+            div.className = `msg ${type}`;
+            div.innerText = txt;
+            box.appendChild(div);
+            box.scrollTop = box.scrollHeight;
+        }
+
+        function speak(txt) {
+            if(!window.speechSynthesis) return;
+            window.speechSynthesis.cancel();
+            const u = new SpeechSynthesisUtterance(txt);
+            window.speechSynthesis.speak(u);
+        }
+
+        function toggleVoice() {
+            voiceOn = !voiceOn;
+            document.getElementById('voiceBtn').innerText = voiceOn ? "🔊 Voice On" : "🔇 Voice Off";
+        }
+
+        getWeather();
     </script>
 </body>
 </html>
