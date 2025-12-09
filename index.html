@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini Weather AI</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; padding: 50px; background: #f0f2f5; }
+        input { padding: 10px; font-size: 16px; width: 200px; }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; background: #0070f3; color: white; border: none; }
+        #output { margin-top: 20px; font-size: 18px; color: #333; }
+    </style>
+</head>
+<body>
+    <h1>☁️ Gemini Weather AI</h1>
+    <input type="text" id="cityInput" placeholder="Enter city (e.g., London)">
+    <button onclick="getAIWeather()">Ask AI</button>
+    <p id="output"></p>
+
+    <script>
+        async function getAIWeather() {
+            const city = document.getElementById('cityInput').value;
+            const output = document.getElementById('output');
+            
+            output.innerText = "Thinking...";
+
+            try {
+                // Notice: We call OUR internal api, not Google's directly
+                const response = await fetch(`/api/server?city=${city}`);
+                const data = await response.json();
+
+                if (data.error) {
+                    output.innerText = "Error: " + data.error;
+                } else {
+                    output.innerText = data.result;
+                }
+            } catch (err) {
+                output.innerText = "Something went wrong.";
+            }
+        }
+    </script>
+</body>
+</html>
