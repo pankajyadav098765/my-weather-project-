@@ -149,16 +149,9 @@
         </div>
     </div>
 
-    <script>
-        // ==========================================
-        // 🚨 PASTE API KEY HERE (LINE 230)
-        const GEMINI_API_KEY = "AIzaSyA5rpr3UZProARVZJSoz5BC3o1b9ZZJNt4";
-        // ==========================================
-
-        const WEATHER_API_KEY = '578f6107f18da6401bdf45590ebabd73';
-        let weatherData = null;
-        let voiceOn = true;
-        let foundModel = null; // We will store the working model here
+    // BAD: const apiKey = "aizaSy...";
+// GOOD:
+const apiKey = ""; // Leave this empty! The backend handles the keys now.
 
         // Setup Listeners
         document.getElementById('searchBtn').addEventListener('click', getWeather);
@@ -348,3 +341,4 @@
     </script>
 </body>
 </html>
+
